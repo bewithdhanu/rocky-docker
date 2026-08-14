@@ -35,7 +35,8 @@ These are two different passwords on purpose.
 # Linux user rocky (sudo / terminal login)
 ROCKY_PASSWORD=changeme
 
-# noVNC prompt when you click Connect (first 8 chars count)
+# noVNC prompt when you click Connect
+# VNC only carries 8 characters — a longer value is truncated to the first 8
 VNC_PASSWORD=changeme
 
 NOVNC_PORT=6080
@@ -62,6 +63,26 @@ docker compose logs -f
 docker compose down
 docker compose up -d
 ```
+
+## If a password is rejected
+
+`NOVNC_PORT` is the **web** port. Open it in a browser (`http://host:PORT/vnc.html`) —
+pointing a native VNC client at it will not work, since that port speaks HTTP.
+
+Check what the container actually applied:
+
+```bash
+docker compose logs | grep '\[init\]'
+```
+
+A VNC password longer than 8 characters is truncated — the log prints the 8
+characters to type. After editing `.env`, recreate the container so it re-reads it:
+
+```bash
+docker compose up -d --force-recreate
+```
+
+`docker compose restart` does **not** pick up `.env` changes.
 
 ## Notes
 
