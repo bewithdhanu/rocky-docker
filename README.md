@@ -22,15 +22,22 @@ docker compose up -d --build
 First build takes a few minutes. When it's up:
 
 1. Open http://localhost:6080/vnc.html
-2. Click **Connect**
-3. Log in as `rocky` / `changeme` (or whatever you set in `.env`)
+2. Click **Connect** and enter the VNC password (`changeme` by default)
+3. Desktop user is `rocky` — password is whatever you set as `ROCKY_PASSWORD`
+
+These are two different passwords on purpose.
 
 ## Config
 
 `.env` controls the basics:
 
 ```env
+# Linux user rocky (sudo / terminal login)
 ROCKY_PASSWORD=changeme
+
+# noVNC prompt when you click Connect (first 8 chars count)
+VNC_PASSWORD=changeme
+
 NOVNC_PORT=6080
 
 # host folders mounted into the desktop

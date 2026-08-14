@@ -145,7 +145,7 @@ RUN echo ':1=rocky' >> /etc/tigervnc/vncserver.users \
     && mkdir -p /home/rocky/.vnc \
     && printf 'session=gnome-xorg\ngeometry=1440x900\ndepth=24\n' > /home/rocky/.vnc/config \
     && chown -R rocky:rocky /home/rocky/.vnc \
-    && printf 'SecurityTypes=None\n' >> /etc/tigervnc/vncserver-config-mandatory
+    && printf 'SecurityTypes=VncAuth\n' >> /etc/tigervnc/vncserver-config-mandatory
 
 # There is no way to unlock the screen over a passwordless VNC session
 RUN mkdir -p /etc/dconf/db/local.d \

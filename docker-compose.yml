@@ -9,8 +9,10 @@ services:
     ports:
       - "${NOVNC_PORT:-6080}:6080"
     environment:
-      # Desktop login password for user "rocky" (sudo works with this too)
+      # Linux user "rocky" password (login + sudo)
       ROCKY_PASSWORD: "${ROCKY_PASSWORD:-changeme}"
+      # Separate password prompted by noVNC / VNC clients
+      VNC_PASSWORD: "${VNC_PASSWORD:-changeme}"
     tmpfs:
       - /run
       - /run/lock

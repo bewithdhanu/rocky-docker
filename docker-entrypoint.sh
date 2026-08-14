@@ -1,16 +1,24 @@
 #!/bin/bash
-# Runs before systemd. Applies the desktop password from ROCKY_PASSWORD
-# (default: changeme) and prepares shared folders for host volume mounts.
+# Runs before systemd.
+# - ROCKY_PASSWORD: Linux user "rocky" login/sudo password (default: changeme)
+# - VNC_PASSWORD: noVNC / VNC connection password (default: changeme) — separate
 set -euo pipefail
 
-PASSWORD="${ROCKY_PASSWORD:-changeme}"
-echo "rocky:${PASSWORD}" | chpasswd
+ROCKY_PASS="${ROCKY_PASSWORD:-changeme}"
+VNC_PASS="${VNC_PASSWORD:-changeme}"
+
+echo "rocky:${ROCKY_PASS}" | chpasswd
+
+mkdir -p /home/rocky/.vnc
 
 # Preserve VNC session config if a volume replaced $HOME
 if [ ! -f /home/rocky/.vnc/config ]; then
-  mkdir -p /home/rocky/.vnc
   printf 'session=gnome-xorg\ngeometry=1440x900\ndepth=24\n' > /home/rocky/.vnc/config
 fi
+
+# TigerVNC stores a DES-hashed password (max 8 characters are used)
+printf '%s\n' "$VNC_PASS" | vncpasswd -f > /home/rocky/.vnc/passwd
+chmod 600 /home/rocky/.vnc/passwd
 
 # Host mounts (especially on Docker Desktop) often arrive as root-owned.
 for dir in /home/rocky /home/rocky/Shared /home/rocky/Documents /home/rocky/Downloads \
