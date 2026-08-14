@@ -129,6 +129,7 @@ git pull && docker compose up -d --build --force-recreate
 - Needs `--privileged` / host cgroups because GNOME wants systemd-logind. Compose sets that for you.
 - Desktop settings you change inside the session are saved to `~/.config/dconf/user`, which lives in `ROCKY_HOME` and survives rebuilds — so it wins over the image defaults in `dconf-windows-look.ini`. To go back to an image default, `dconf reset` that key (e.g. `dconf reset /org/gnome/shell/extensions/dash-to-panel/trans-panel-opacity`).
 - Image is architecture-specific. Build on the machine you'll run it on (arm64 vs amd64).
+- Video playback covers H.264, AAC, MP3, VP8/VP9, AV1, Opus and Vorbis. H.265/HEVC is not included, since neither Rocky nor EPEL ships a decoder for it — add RPM Fusion yourself if you need it.
 - This is Rocky Linux, not RHEL. Same package layout as RHEL 9, no Red Hat subscription required.
 
 ## License

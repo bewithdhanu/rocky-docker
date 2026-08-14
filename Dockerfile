@@ -53,6 +53,19 @@ RUN dnf -y install \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
+# Firefox decodes H.264/AAC through the system ffmpeg libraries, and Rocky ships
+# none, so every MP4 — most video on the web — failed with "No video with
+# supported format and MIME type found". crb is only needed to satisfy ladspa,
+# a transitive dependency of the ffmpeg CLI.
+RUN dnf -y --enablerepo=crb install \
+        libavcodec-free \
+        ffmpeg-free \
+        mozilla-openh264 \
+        gstreamer1-plugin-openh264 \
+        gstreamer1-plugins-ugly-free \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
 # Indian language fonts — without these, Firefox shows tofu boxes for
 # Bengali, Telugu, Gujarati, Kannada, Malayalam, Punjabi, Odia, etc.
 RUN dnf -y install \
