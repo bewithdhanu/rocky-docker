@@ -8,7 +8,13 @@ ROCKY_PASS="${ROCKY_PASSWORD:-changeme}"
 VNC_PASS="${VNC_PASSWORD:-changeme}"
 
 echo "rocky:${ROCKY_PASS}" | chpasswd
-echo "[init] linux user 'rocky' password set (${#ROCKY_PASS} chars)"
+usermod -U rocky 2>/dev/null || true
+command -v faillock >/dev/null && faillock --user rocky --reset 2>/dev/null || true
+
+# The desktop terminal's prompt shows this hostname. If it differs, the browser
+# is attached to an older container and the new password will not match.
+echo "[init] container $(hostname)"
+echo "[init] linux user 'rocky' password set (${#ROCKY_PASS} chars): $(passwd -S rocky 2>/dev/null | awk '{print $2}')"
 
 # The VNC protocol only carries 8 characters, so anything longer is silently
 # ignored by clients. Truncate here and say so, instead of failing to log in.

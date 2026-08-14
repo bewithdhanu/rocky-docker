@@ -84,6 +84,24 @@ docker compose up -d --force-recreate
 
 `docker compose restart` does **not** pick up `.env` changes.
 
+If `sudo` in the desktop rejects `ROCKY_PASSWORD`, test it without going through
+VNC at all:
+
+```bash
+docker compose exec -T rocky-desktop bash -c 'echo "$ROCKY_PASSWORD" | su rocky -c "sudo -S -k id -un"'
+```
+
+Printing `root` means the password is correct, and the browser tab is showing a
+session from an older container. Compare the hostname in the desktop terminal
+prompt with the running container:
+
+```bash
+docker compose logs | grep 'container'
+docker ps
+```
+
+If they differ, hard-reload the browser tab (Ctrl/Cmd+Shift+R) and reconnect.
+
 ## Notes
 
 - Needs `--privileged` / host cgroups because GNOME wants systemd-logind. Compose sets that for you.
