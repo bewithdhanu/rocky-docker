@@ -140,6 +140,19 @@ RUN useradd -m -s /bin/bash rocky \
     && mkdir -p /home/rocky/Shared /home/rocky/Documents /home/rocky/Downloads \
     && chown -R rocky:rocky /home/rocky
 
+# Ubuntu hosts ship an AppArmor profile named "unix-chkpwd" that attaches by
+# executable path, so it confines this container's copy of the helper too — even
+# though the container itself is unconfined — and denies it CAP_DAC_OVERRIDE.
+# Rocky's mode 000 /etc/shadow then becomes unreadable to PAM and every password
+# check fails (sudo, screen unlock, polkit). Switch to the Debian layout the
+# profile was written for: the helper reads /etc/shadow via group "shadow"
+# instead of a capability, which works on every host.
+RUN groupadd -r shadow \
+    && chgrp shadow /etc/shadow \
+    && chmod 0640 /etc/shadow \
+    && chgrp shadow /usr/sbin/unix_chkpwd \
+    && chmod 02755 /usr/sbin/unix_chkpwd
+
 # Bind display :1 to rocky and run the X11 (not Wayland) GNOME session
 RUN echo ':1=rocky' >> /etc/tigervnc/vncserver.users \
     && mkdir -p /home/rocky/.vnc \

@@ -102,6 +102,28 @@ docker ps
 
 If they differ, hard-reload the browser tab (Ctrl/Cmd+Shift+R) and reconnect.
 
+### Ubuntu hosts: `sudo` rejecting a correct password
+
+Older builds of this image failed every password check on Ubuntu hosts, with the
+correct password behaving exactly like a wrong one. Ubuntu ships an AppArmor
+profile named `unix-chkpwd`, and AppArmor matches profiles by executable path —
+so the container's `/usr/sbin/unix_chkpwd` gets confined by the *host's* profile
+even though the container runs unconfined. The profile denies `CAP_DAC_OVERRIDE`,
+which Rocky's helper needs to read its mode `000` `/etc/shadow`. On the host:
+
+```bash
+sudo dmesg | grep unix-chkpwd
+# apparmor="DENIED" ... profile="unix-chkpwd" comm="unix_chkpwd" capname="dac_override"
+```
+
+The image now ships `/etc/shadow` as `0640 root:shadow` with a setgid-`shadow`
+helper (Ubuntu's own layout), so no capability is needed and hashes stay
+unreadable to normal users. Rebuild to pick this up:
+
+```bash
+git pull && docker compose up -d --build --force-recreate
+```
+
 ## Notes
 
 - Needs `--privileged` / host cgroups because GNOME wants systemd-logind. Compose sets that for you.

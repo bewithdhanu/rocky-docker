@@ -11,6 +11,12 @@ echo "rocky:${ROCKY_PASS}" | chpasswd
 usermod -U rocky 2>/dev/null || true
 command -v faillock >/dev/null && faillock --user rocky --reset 2>/dev/null || true
 
+# See the Dockerfile: on Ubuntu hosts PAM's helper is confined by the host's
+# "unix-chkpwd" AppArmor profile and cannot use CAP_DAC_OVERRIDE, so it needs
+# group-read on /etc/shadow. Re-assert it in case a password tool reset the mode.
+chgrp shadow /etc/shadow 2>/dev/null || true
+chmod 0640 /etc/shadow 2>/dev/null || true
+
 # The desktop terminal's prompt shows this hostname. If it differs, the browser
 # is attached to an older container and the new password will not match.
 echo "[init] container $(hostname)"
