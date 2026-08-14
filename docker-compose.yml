@@ -1,0 +1,25 @@
+services:
+  rocky-desktop:
+    build: .
+    image: rocky-gnome-container:latest
+    container_name: rocky-desktop
+    privileged: true
+    cgroup: host
+    shm_size: "1gb"
+    ports:
+      - "${NOVNC_PORT:-6080}:6080"
+    environment:
+      # Desktop login password for user "rocky" (sudo works with this too)
+      ROCKY_PASSWORD: "${ROCKY_PASSWORD:-changeme}"
+    tmpfs:
+      - /run
+      - /run/lock
+    volumes:
+      # Persist the full home directory (desktop settings, Firefox profile, etc.)
+      - ${ROCKY_HOME:-./data/home}:/home/rocky
+      # Share a host folder into the desktop (Files → Shared)
+      - ${SHARED_DIR:-./data/shared}:/home/rocky/Shared
+      # Optional: map your local Documents / Downloads
+      - ${DOCUMENTS_DIR:-./data/documents}:/home/rocky/Documents
+      - ${DOWNLOADS_DIR:-./data/downloads}:/home/rocky/Downloads
+    restart: unless-stopped
