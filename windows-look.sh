@@ -31,12 +31,15 @@ install_ext "dash-to-panel@jderose9.github.com"
 install_ext "arcmenu@arcmenu.com"
 install_ext "user-theme@gnome-shell-extensions.gcampax.github.com"
 
-# Fluent is a Windows 11-styled GTK/shell theme
+# Fluent is a Windows 11-styled GTK/shell theme.
+# "solid" (not "blur"): the blur variant expects a shell blur extension to paint a
+# frosted backdrop behind its translucent surfaces, and without one, windows and
+# menus just show the wallpaper through them.
 curl -sfL -o fluent-gtk.tar.gz https://github.com/vinceliuice/Fluent-gtk-theme/archive/refs/tags/2025-04-17.tar.gz
 rm -rf Fluent-gtk-theme-*
 tar xzf fluent-gtk.tar.gz
 cd Fluent-gtk-theme-*
-./install.sh --dest /usr/share/themes --color dark --tweaks round blur >/dev/null 2>&1 \
+./install.sh --dest /usr/share/themes --color dark --tweaks round solid >/dev/null 2>&1 \
     || ./install.sh --dest /usr/share/themes >/dev/null
 echo "gtk/shell theme installed: Fluent"
 cd "$WORK"
