@@ -4,6 +4,7 @@ After=vncserver@:1.service
 Wants=vncserver@:1.service
 
 [Service]
+# Listen port is rewritten at container start from NOVNC_PORT (default 6080).
 ExecStart=/usr/bin/websockify --web=/usr/share/novnc 6080 localhost:5901
 Restart=always
 RestartSec=2

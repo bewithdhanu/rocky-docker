@@ -31,6 +31,14 @@ RUN dnf -y install epel-release \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
+# Docker CLI only — talks to the host engine via the mounted docker.sock.
+# The daemon itself is not installed; rocky sees the same containers as the host.
+RUN dnf -y install dnf-plugins-core \
+    && dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo \
+    && dnf -y install docker-ce-cli docker-compose-plugin \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
 # Applications: browser, office, editors, utilities, and the GNOME Software store
 RUN dnf -y install \
         firefox \

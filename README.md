@@ -10,7 +10,9 @@ GNOME with a Windows-style taskbar and start menu, plus the usual apps (Firefox,
 
 - Docker + Docker Compose
 - ~4 GB free RAM (8 GB is more comfortable)
-- Port 6080 free
+- Port 6080 free (or whatever you set as `NOVNC_PORT`)
+- Linux host recommended for full host-network behaviour; Docker Desktop on Mac/Windows is more limited
+- Host Docker socket at `/var/run/docker.sock` (default Docker install)
 
 ## Quick start
 
@@ -21,11 +23,16 @@ docker compose up -d --build
 
 First build takes a few minutes. When it's up:
 
-1. Open http://localhost:6080/vnc.html
+1. Open http://localhost:6080/vnc.html (or `http://host:NOVNC_PORT/vnc.html`)
 2. Click **Connect** and enter the VNC password (`changeme` by default)
 3. Desktop user is `rocky` — password is whatever you set as `ROCKY_PASSWORD`
 
 These are two different passwords on purpose.
+
+The container uses **host networking**: any port a process opens inside Rocky is
+reachable on the host without adding `ports:` entries. It also mounts the host
+Docker socket, so `docker` / `docker compose` inside the desktop control the
+**host** engine (same containers you see with `docker ps` on the host).
 
 ## Config
 
@@ -48,6 +55,9 @@ DOCUMENTS_DIR=./data/documents
 DOWNLOADS_DIR=./data/downloads
 ```
 
+`NOVNC_PORT` is the port noVNC **binds on the host** (not a Docker publish map).
+Do not set it to `5901` — that is TigerVNC display `:1`.
+
 Point `SHARED_DIR` at a real folder if you want host files inside the container:
 
 ```env
@@ -66,8 +76,10 @@ docker compose up -d
 
 ## If a password is rejected
 
-`NOVNC_PORT` is the **web** port. Open it in a browser (`http://host:PORT/vnc.html`) —
-pointing a native VNC client at it will not work, since that port speaks HTTP.
+`NOVNC_PORT` is the **web** port noVNC listens on. Open it in a browser
+(`http://host:PORT/vnc.html`) — pointing a native VNC client at it will not work,
+since that port speaks HTTP. With host networking there is no separate “container
+port”; the value is the real host bind port.
 
 Check what the container actually applied:
 
@@ -127,6 +139,8 @@ git pull && docker compose up -d --build --force-recreate
 ## Notes
 
 - Needs `--privileged` / host cgroups because GNOME wants systemd-logind. Compose sets that for you.
+- Uses `network_mode: host` so desktop-opened ports are on the host without listing them. Avoid binding the same ports as other host services (Coolify, databases, etc.).
+- Mounts `/var/run/docker.sock` and ships the Docker CLI. That is full control of the host Docker engine — treat the desktop like a trusted admin session. `rocky` is added to the socket’s group when the socket is group-accessible; otherwise use `sudo docker`.
 - Desktop settings you change inside the session are saved to `~/.config/dconf/user`, which lives in `ROCKY_HOME` and survives rebuilds — so it wins over the image defaults in `dconf-windows-look.ini`. To go back to an image default, `dconf reset` that key (e.g. `dconf reset /org/gnome/shell/extensions/dash-to-panel/trans-panel-opacity`).
 - Image is architecture-specific. Build on the machine you'll run it on (arm64 vs amd64).
 - Video playback covers H.264, AAC, MP3, VP8/VP9, AV1, Opus and Vorbis. H.265/HEVC is not included, since neither Rocky nor EPEL ships a decoder for it — add RPM Fusion yourself if you need it.

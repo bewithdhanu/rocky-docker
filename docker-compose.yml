@@ -5,14 +5,18 @@ services:
     container_name: rocky-desktop
     privileged: true
     cgroup: host
+    # Share the host network stack so any port the desktop opens is reachable
+    # on the host without listing each one. ports: is ignored in this mode.
+    network_mode: host
     shm_size: "1gb"
-    ports:
-      - "${NOVNC_PORT:-6080}:6080"
     environment:
       # Linux user "rocky" password (login + sudo)
       ROCKY_PASSWORD: "${ROCKY_PASSWORD:-changeme}"
       # Separate password prompted by noVNC / VNC clients
       VNC_PASSWORD: "${VNC_PASSWORD:-changeme}"
+      # noVNC listen port on the host (host network — not a publish mapping)
+      # Must not be 5901: that is TigerVNC display :1.
+      NOVNC_PORT: "${NOVNC_PORT:-6080}"
     tmpfs:
       - /run
       - /run/lock
@@ -24,4 +28,6 @@ services:
       # Optional: map your local Documents / Downloads
       - ${DOCUMENTS_DIR:-./data/documents}:/home/rocky/Documents
       - ${DOWNLOADS_DIR:-./data/downloads}:/home/rocky/Downloads
+      # Host Docker engine — `docker` inside Rocky talks to this socket
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
