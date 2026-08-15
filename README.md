@@ -56,7 +56,9 @@ DOWNLOADS_DIR=./data/downloads
 ```
 
 `NOVNC_PORT` is the port noVNC **binds on the host** (not a Docker publish map).
-Do not set it to `5901` — that is TigerVNC display `:1`.
+Do not set it to `5910` — that is TigerVNC display `:10` (RFB). Display `:1`
+is avoided because host networking would need TCP `6001`, which other stacks
+(e.g. Coolify realtime) often already publish.
 
 Point `SHARED_DIR` at a real folder if you want host files inside the container:
 

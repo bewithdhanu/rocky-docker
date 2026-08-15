@@ -2,12 +2,14 @@
 # Runs before systemd.
 # - ROCKY_PASSWORD: Linux user "rocky" login/sudo password (default: changeme)
 # - VNC_PASSWORD: noVNC / VNC connection password (default: changeme) — separate
-# - NOVNC_PORT: host listen port for the noVNC web UI (default: 6080; not 5901)
+# - NOVNC_PORT: host listen port for the noVNC web UI (default: 6080; not 5910)
 set -euo pipefail
 
 ROCKY_PASS="${ROCKY_PASSWORD:-changeme}"
 VNC_PASS="${VNC_PASSWORD:-changeme}"
 NOVNC_LISTEN="${NOVNC_PORT:-6080}"
+# TigerVNC display :10 — RFB port (must not equal NOVNC_PORT under host network)
+VNC_RFB_PORT=5910
 
 echo "rocky:${ROCKY_PASS}" | chpasswd
 usermod -U rocky 2>/dev/null || true
@@ -33,16 +35,16 @@ if [ "${#VNC_PASS}" -gt 8 ]; then
 fi
 echo "[init] vnc password set (${#VNC_PASS_EFFECTIVE} chars in use)"
 
-# Host networking: websockify binds NOVNC_PORT on the host. TigerVNC owns 5901.
-if [ "$NOVNC_LISTEN" = "5901" ]; then
-  echo "[init] WARNING: NOVNC_PORT=5901 conflicts with TigerVNC; using 6080 instead."
+# Host networking: websockify binds NOVNC_PORT on the host. TigerVNC owns VNC_RFB_PORT.
+if [ "$NOVNC_LISTEN" = "$VNC_RFB_PORT" ] || [ "$NOVNC_LISTEN" = "5901" ]; then
+  echo "[init] WARNING: NOVNC_PORT=${NOVNC_LISTEN} conflicts with TigerVNC; using 6080 instead."
   NOVNC_LISTEN=6080
 fi
 if [ -f /etc/systemd/system/novnc.service ]; then
   sed -i -E "s|^(ExecStart=/usr/bin/websockify --web=/usr/share/novnc) [0-9]+ |\1 ${NOVNC_LISTEN} |" \
     /etc/systemd/system/novnc.service
 fi
-echo "[init] noVNC listening on http://0.0.0.0:${NOVNC_LISTEN}/vnc.html"
+echo "[init] noVNC listening on http://0.0.0.0:${NOVNC_LISTEN}/vnc.html (VNC :10 → ${VNC_RFB_PORT})"
 
 # Let rocky use the host Docker engine via the mounted socket.
 if [ -S /var/run/docker.sock ]; then

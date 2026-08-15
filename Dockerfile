@@ -174,8 +174,9 @@ RUN groupadd -r shadow \
     && chgrp shadow /usr/sbin/unix_chkpwd \
     && chmod 02755 /usr/sbin/unix_chkpwd
 
-# Bind display :1 to rocky and run the X11 (not Wayland) GNOME session
-RUN echo ':1=rocky' >> /etc/tigervnc/vncserver.users \
+# Bind display :10 to rocky (RFB 5910 / X11 6010). Avoid :1 — under host
+# networking that needs TCP 6001, which Coolify and others often already publish.
+RUN echo ':10=rocky' >> /etc/tigervnc/vncserver.users \
     && mkdir -p /home/rocky/.vnc \
     && printf 'session=gnome-xorg\ngeometry=1440x900\ndepth=24\n' > /home/rocky/.vnc/config \
     && chown -R rocky:rocky /home/rocky/.vnc \
@@ -192,7 +193,7 @@ COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 RUN systemctl set-default multi-user.target \
-    && systemctl enable vncserver@:1.service novnc.service \
+    && systemctl enable vncserver@:10.service novnc.service \
     && systemctl mask \
         dev-hugepages.mount \
         sys-fs-fuse-connections.mount \
